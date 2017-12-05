@@ -1,0 +1,67 @@
+```{r}
+install.packages("party")
+library(party)
+```
+```{r}
+install.packages("rpart")
+```
+
+```{r}
+library(rpart)
+```
+
+```{r}
+D1 <- read.csv("~/Documents/RStudio/assignment5-Yuwen-Zhang/intelligent_tutor.csv")
+```
+
+```{r}
+c.tree <- rpart(action ~ hint.y + complete, method="class", data=D1) #Notice the standard R notion for a formula X ~ Y
+
+#Look at the error of this tree
+printcp(c.tree)
+
+#Plot the tree
+post(c.tree, file = "", title = "Session Completion Action: 1 - Ask teacher, 2 - Start new session, 3 - Give up")
+
+```
+```{r}
+hist(D1$score)
+```
+```{r}
+D1$advice <- ifelse(D1$score <=0.4, "intervene", ifelse(D1$score > 0.4 & D1$score <=0.8, "monitor", "no action"))
+```
+
+```{r}
+score_ctree <- rpart(factor(advice) ~ prior_prob_count + prior_percent_correct + hints, D1)
+```
+
+```{r}
+plot(score_ctree)
+post(score_ctree, file = "score_ctree.ps")
+```
+
+## Please interpret the tree, which two behaviors do you think the teacher should most closely pay attemtion to?
+
+## Teacher should pay attention to student's prior correct percentage and hints they use.
+
+```{r}
+D2 <- read.csv("~/Documents/RStudio/assignment5-Yuwen-Zhang/intelligent_tutor_new.csv")
+```
+
+```{r}
+D2$prediction <- predict(score_ctree, D2)
+```
+
+## Part III
+Compare the predicted advice with the actual advice that these studnts recieved. What is the difference between the observed and predicted results?
+
+
+```{r}
+D2$actual <- ifelse(D2$score <=0.4, "intervene", ifelse(D2$score > 0.4 & D2$score <=0.8, "monitor", "no action"))
+```
+
+```{r}
+table(D2$actual == D2$prediction)
+```
+# All wrong?
+
